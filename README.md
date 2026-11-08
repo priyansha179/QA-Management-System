@@ -1,139 +1,263 @@
 # QA Management System
 
-A full-stack web application designed to manage software testing activities, including test case management, test execution, and bug tracking. It aims to streamline QA workflows, monitor testing progress, and improve collaboration between testers and developers.
+A web-based Quality Assurance Management System designed to help QA teams organize software testing activities, manage test cases, execute tests, and track software defects.
 
-##  Project Overview
+This project is currently in development. The initial backend includes user registration, login, and a health-check API. Additional QA management features are planned.
 
-The QA Management System is a web-based platform that provides a centralized environment for managing software testing activities. It helps QA testers organize test cases, execute test scenarios, record test results, and report software defects.
+## Project Overview
 
-The system also allows developers and administrators to monitor bugs, track project progress, and manage testing activities efficiently.
+The goal of this project is to build a centralized platform for managing software testing workflows. It will eventually support testers, developers, and administrators in organizing projects, managing test cases, recording execution results, and tracking bugs.
 
-##  Project Objectives
+The project is also a practical learning initiative focused on full-stack development, REST API development, database management, and software testing.
 
-- Build a complete full-stack web application.
-- Simplify software testing and defect management.
-- Manage test cases and test execution results.
-- Track and prioritize reported bugs.
-- Improve collaboration between testers and developers.
-- Gain practical experience in REST API development and database management.
-- Practice API testing and end-to-end automation testing.
+## Current Features
 
-##  Key Features
+The following features are currently implemented:
 
-### 1. User Authentication & Authorization
-- User registration and login.
-- Secure password hashing.
-- JWT-based authentication.
-- Role-based access control (Admin, Tester, Developer).
+- **Health Check:** Verify whether the backend API is running.
+- **User Registration:** Register a user with an email, password, and role.
+- **User Login:** Validate user credentials.
+- **Password Hashing:** Hash passwords before storing them in the database.
+- **User Roles:** Store a user's role, with Tester as the default role.
+- **Database Integration:** Store user information using SQLite and SQLAlchemy.
 
-### 2. Project Management
-- Create, update, and delete projects.
-- Assign team members to projects.
-- View project details and progress.
-- Manage project status.
+## Planned Features
 
-### 3. Test Case Management
-- Create, edit, and delete test cases.
-- Assign unique test case IDs.
-- Define test steps, preconditions, and expected results.
-- Organize test cases into test suites.
-- Categorize test cases by testing type.
+The following features are part of the development roadmap and are not implemented yet:
 
-### 4. Test Execution Management
-- Execute test cases.
-- Record execution results (Pass, Fail, Blocked).
-- Add actual results and execution comments.
-- Maintain execution history.
-- Track testing progress.
+- Project creation and management.
+- Test case creation, editing, and organization.
+- Test execution and result tracking.
+- Bug reporting and defect management.
+- Bug severity and priority management.
+- Dashboard and testing analytics.
+- Search and filtering.
+- Role-based permissions.
+- Frontend integration.
 
-### 5. Bug Tracking & Reporting
-- Create and manage bug reports.
-- Define steps to reproduce defects.
-- Record expected and actual results.
-- Set bug severity and priority.
-- Assign bugs to developers.
-- Track bug status and resolution.
-- Attach screenshots and supporting evidence.
+## Technology Stack
 
-### 6. Dashboard & Analytics
-- View total projects and test cases.
-- Monitor passed, failed, and blocked test cases.
-- Track open and resolved bugs.
-- Visualize testing progress through charts.
-- View project-wise testing statistics.
-
-### 7. Search & Filtering
-- Search projects and test cases.
-- Filter bugs by severity, priority, and status.
-- Search and organize testing records.
-
-##  Technology Stack
-
-| Category | Technologies |
+| Category | Technology |
 |---|---|
-| Frontend | React.js |
-| Styling | Tailwind CSS |
 | Backend | Python, FastAPI |
-| Database | PostgreSQL |
+| Database | SQLite |
 | ORM | SQLAlchemy |
-| Authentication | JWT |
-| API Testing | Postman |
-| Automation Testing | Playwright |
-| Version Control | Git, GitHub |
+| Data Validation | Pydantic |
+| Server | Uvicorn |
+| API Documentation | FastAPI Swagger UI |
+| Version Control | Git and GitHub |
+
+**Planned technologies**
+
+- Frontend: React.js
+- Styling: Tailwind CSS
+- API Testing: Postman
+- Automation Testing: Playwright
 
 ## System Architecture
 
-The application follows a three-tier architecture:
+The current application consists of a FastAPI backend connected to an SQLite database through SQLAlchemy.
 
-1. **Presentation Layer:** React.js handles the user interface and user interactions.
-2. **Application Layer:** FastAPI manages business logic, authentication, validation, and REST API endpoints.
-3. **Data Layer:** PostgreSQL stores users, projects, test cases, test results, and bug reports.
+**Current flow:** FastAPI Backend → SQLAlchemy → SQLite Database
 
-**Application Flow:**
+A React frontend is planned for a future development phase.
 
-`React Frontend → FastAPI Backend → PostgreSQL Database`
-
-##  Planned Project Structure
+## Project Structure
 
 ```text
-qa-management-system/
-│
-├── frontend/
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── layouts/
-│       ├── services/
-│       ├── hooks/
-│       └── utils/
+QA-Management-System/
 │
 ├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── database/
-│   │   └── main.py
-│   ├── tests/
-│   └── requirements.txt
+│   ├── __pycache__/       # Generated Python cache files
+│   ├── database.py        # SQLite connection and SQLAlchemy setup
+│   ├── main.py            # FastAPI application and API endpoints
+│   ├── models.py          # Database models
+│   ├── qa_system.db       # SQLite database
+│   └── requirements.txt  # Python dependencies
 │
-├── testing/
-│   ├── manual/
-│   ├── api/
-│   └── automation/
-│
-├── docs/
-├── .gitignore
 └── README.md
 ```
 
-##  Testing Strategy
+## Backend Files
 
-The application will be tested using different testing approaches.
+| File | Description |
+|---|---|
+| `main.py` | Creates the FastAPI application and defines API endpoints. |
+| `database.py` | Configures the SQLite database connection and SQLAlchemy session. |
+| `models.py` | Defines the User database model. |
+| `requirements.txt` | Lists the Python dependencies. |
+| `qa_system.db` | SQLite database file. |
 
-**Manual Testing**
+## Getting Started
+
+Follow these instructions to run the current backend locally.
+
+### Prerequisites
+
+- Python installed
+- Git installed
+- A code editor such as VS Code
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/priyansha179/QA-Management-System.git
+cd QA-Management-System
+```
+
+### 2. Navigate to the Backend
+
+```bash
+cd backend
+```
+
+### 3. Create a Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+Activate it:
+
+**Windows:**
+
+```bash
+venv\\Scripts\\activate
+```
+
+**Linux/macOS:**
+
+```bash
+source venv/bin/activate
+```
+
+### 4. Install Dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 5. Run the Backend Server
+
+Run this command from inside the `backend` directory:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+
+```
+http://127.0.0.1:8000
+```
+
+## API Endpoints
+
+The current backend provides the following endpoints:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/health` | Checks API availability. |
+| POST | `/register` | Registers a new user. |
+| POST | `/login` | Authenticates a user. |
+
+### 1. Health Check
+
+**Request**
+
+```http
+GET /health
+```
+
+**Example response**
+
+```json
+{
+  "status": "ok",
+  "message": "API is running!"
+}
+```
+
+### 2. User Registration
+
+**Request**
+
+```http
+POST /register
+```
+
+**Example request body**
+
+```json
+{
+  "email": "tester@example.com",
+  "password": "your_password",
+  "role": "Tester"
+}
+```
+
+A successful registration returns a confirmation message and the new user's ID. Registering an email that already exists returns an error.
+
+### 3. User Login
+
+**Request**
+
+```http
+POST /login
+```
+
+**Example request body**
+
+```json
+{
+  "email": "tester@example.com",
+  "password": "your_password"
+}
+```
+
+A successful login returns a confirmation message and the user's role. Invalid credentials return an authentication error.
+
+## API Documentation
+
+FastAPI automatically generates interactive API documentation.
+
+After starting the backend, visit:
+
+- **Swagger UI:** http://127.0.0.1:8000/docs
+- **ReDoc:** http://127.0.0.1:8000/redoc
+
+You can use Swagger UI to send requests and inspect API responses.
+
+## Security Note
+
+The current implementation uses SHA-256 for password hashing and does not yet issue JWT access tokens. This is an early learning implementation, not production-ready authentication. A password-specific hashing algorithm and a secure authentication flow are planned improvements.
+
+## Development Roadmap
+
+- [x] Initialize FastAPI backend.
+- [x] Configure SQLite database using SQLAlchemy.
+- [x] Create the User database model.
+- [x] Implement health-check endpoint.
+- [x] Implement user registration.
+- [x] Implement user login.
+- [ ] Improve password security.
+- [ ] Implement JWT authentication.
+- [ ] Add role-based authorization.
+- [ ] Design and build the React frontend.
+- [ ] Implement project management.
+- [ ] Implement test case management.
+- [ ] Implement test execution.
+- [ ] Implement bug tracking.
+- [ ] Build dashboard and analytics.
+- [ ] Perform API testing using Postman.
+- [ ] Add end-to-end automation using Playwright.
+- [ ] Deploy the application.
+
+## Testing Strategy
+
+Testing will be introduced as the application develops.
+
+**Planned manual testing:**
 - Functional Testing
 - Integration Testing
 - System Testing
@@ -145,134 +269,35 @@ The application will be tested using different testing approaches.
 - Compatibility Testing
 - Negative Testing
 
-**API Testing – Postman**
-- Validate REST API endpoints.
-- Verify HTTP status codes.
-- Validate request and response bodies.
-- Test authentication and authorization.
-- Perform positive and negative testing.
+**Planned API testing:**
+- Validate API responses and status codes.
+- Test valid and invalid inputs.
+- Verify registration and login behavior.
+- Test error handling.
 
-**Automation Testing – Playwright**
-- Automate login and registration.
-- Test project management workflows.
-- Automate test case creation.
-- Test test execution functionality.
-- Automate bug reporting workflows.
-- Validate user interactions and navigation.
+**Planned automation testing:**
+- Automate important user workflows using Playwright.
+- Validate frontend and backend integration.
 
-##  Installation & Setup
+## Learning Objectives
 
-### Prerequisites
+Through this project, I aim to gain practical experience in:
 
-- Python 3.10+
-- Node.js and npm
-- PostgreSQL
-- Git
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd qa-management-system
-```
-
-### 2. Backend Setup
-
-```bash
-cd backend
-
-python -m venv venv
-```
-
-Activate the virtual environment:
-
-**Windows:**
-```bash
-venv\Scripts\activate
-```
-
-**Linux/macOS:**
-```bash
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Start the backend server:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-### 3. Frontend Setup
-
-Open another terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 4. API Documentation
-
-Once the backend is running, access the interactive API documentation:
-
-`http://127.0.0.1:8000/docs`
-
-*Note: Database configuration and environment variables will be documented as development progresses.*
-
-##  Development Roadmap
-
-- [ ] Requirement analysis and UI/UX design
-- [ ] Database design and configuration
-- [ ] Backend setup and REST API development
-- [ ] User authentication and authorization
-- [ ] Project management module
-- [ ] Test case management module
-- [ ] Test execution module
-- [ ] Bug tracking module
-- [ ] Dashboard and analytics
-- [ ] Postman API testing
-- [ ] Playwright automation testing
-- [ ] Application deployment
-
-##  Future Enhancements
-
-- Email notifications for bug assignments.
-- Real-time project updates.
-- PDF and CSV report generation.
-- GitHub integration.
-- Advanced testing analytics.
-- AI-assisted test case generation.
-- AI-assisted bug report suggestions.
-
-##  Learning Outcomes
-
-This project aims to provide practical experience in:
-
-- Full-stack web development.
-- REST API development and integration.
-- Database design and SQL.
+- Full-stack web application development.
+- Python and FastAPI.
+- REST API development.
+- Database management and SQL.
 - Authentication and authorization.
-- Software Quality Assurance workflows.
-- Manual and API testing.
-- End-to-end test automation.
+- Software Quality Assurance.
+- API testing and automation.
 - Git and GitHub workflows.
-- Application deployment.
 
-##  Project Status
+## Project Status
 
-**Status:** In Progress 
+**Status: In Progress**
 
-This project is being developed as a practical learning initiative to explore full-stack web development and real-world Quality Assurance practices.
-
-
+The initial backend setup, database connection, user model, registration, and login endpoints are implemented. Frontend development and the remaining QA management modules are planned.
 
 ---
 
-⭐ If you find this project interesting, feel free to explore the repository and follow its development.
+Developed as a hands-on learning project.
