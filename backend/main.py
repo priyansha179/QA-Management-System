@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -74,7 +75,7 @@ class ProjectResponse(BaseModel):
     description: str | None
     status: str
     owner_id: int
-    created_at: object
+    created_at: datetime
 
 
 @app.get("/health")
