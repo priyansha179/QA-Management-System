@@ -1,143 +1,101 @@
 # QA Management System
 
-A web-based Quality Assurance Management System designed to help QA teams organize software testing activities, manage test cases, execute tests, and track software defects.
-
-This project is currently in development. The initial backend includes user registration, login, and a health-check API. Additional QA management features are planned.
-
-## Project Overview
-
-The goal of this project is to build a centralized platform for managing software testing workflows. It will eventually support testers, developers, and administrators in organizing projects, managing test cases, recording execution results, and tracking bugs.
-
-The project is also a practical learning initiative focused on full-stack development, REST API development, database management, and software testing.
+A backend-first Quality Assurance Management System built with FastAPI and SQLite. The project is being developed to help QA teams organize projects and, in future stages, manage test cases, test execution, and defects.
 
 ## Current Features
 
-The following features are currently implemented:
-
-- **Health Check:** Verify whether the backend API is running.
-- **User Registration:** Register a user with an email, password, and role.
-- **User Login:** Validate user credentials.
-- **Password Hashing:** Hash passwords before storing them in the database.
-- **User Roles:** Store a user's role, with Tester as the default role.
-- **Database Integration:** Store user information using SQLite and SQLAlchemy.
-
-## Planned Features
-
-The following features are part of the development roadmap and are not implemented yet:
-
-- Project creation and management.
-- Test case creation, editing, and organization.
-- Test execution and result tracking.
-- Bug reporting and defect management.
-- Bug severity and priority management.
-- Dashboard and testing analytics.
-- Search and filtering.
-- Role-based permissions.
-- Frontend integration.
+- User registration and login.
+- JWT access-token generation and verification.
+- Protected project management endpoints.
+- Users can create, list, view, and delete their own projects.
+- Bcrypt password hashing for new registrations.
+- Automatic upgrade of existing SHA-256 password hashes to bcrypt after a successful login.
+- SQLite database integration through SQLAlchemy.
+- Interactive API documentation with Swagger UI.
 
 ## Technology Stack
 
 | Category | Technology |
 |---|---|
-| Backend | Python, FastAPI |
+| Language | Python |
+| Backend framework | FastAPI |
 | Database | SQLite |
 | ORM | SQLAlchemy |
-| Data Validation | Pydantic |
-| Server | Uvicorn |
-| API Documentation | FastAPI Swagger UI |
-| Version Control | Git and GitHub |
-
-**Planned technologies**
-
-- Frontend: React.js
-- Styling: Tailwind CSS
-- API Testing: Postman
-- Automation Testing: Playwright
-
-## System Architecture
-
-The current application consists of a FastAPI backend connected to an SQLite database through SQLAlchemy.
-
-**Current flow:** FastAPI Backend → SQLAlchemy → SQLite Database
-
-A React frontend is planned for a future development phase.
+| Authentication | JWT (python-jose) |
+| Password hashing | Passlib and bcrypt |
+| API server | Uvicorn |
+| API documentation | Swagger UI / ReDoc |
 
 ## Project Structure
 
 ```text
 QA-Management-System/
-│
 ├── backend/
-│   ├── __pycache__/       # Generated Python cache files
-│   ├── database.py        # SQLite connection and SQLAlchemy setup
-│   ├── main.py            # FastAPI application and API endpoints
-│   ├── models.py          # Database models
-│   ├── qa_system.db       # SQLite database
-│   └── requirements.txt  # Python dependencies
-│
+│   ├── auth.py
+│   ├── database.py
+│   ├── main.py
+│   ├── models.py
+│   └── requirements.txt
 └── README.md
 ```
 
-## Backend Files
-
-| File | Description |
-|---|---|
-| `main.py` | Creates the FastAPI application and defines API endpoints. |
-| `database.py` | Configures the SQLite database connection and SQLAlchemy session. |
-| `models.py` | Defines the User database model. |
-| `requirements.txt` | Lists the Python dependencies. |
-| `qa_system.db` | SQLite database file. |
+The SQLite database file (`qa_system.db`) is created in the backend directory when the application runs.
 
 ## Getting Started
 
-Follow these instructions to run the current backend locally.
-
 ### Prerequisites
 
-- Python installed
-- Git installed
-- A code editor such as VS Code
+- Python 3.10 or newer
+- Git
+- VS Code or another code editor
 
-### 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/priyansha179/QA-Management-System.git
 cd QA-Management-System
 ```
 
-### 2. Navigate to the Backend
+### 2. Create and activate a virtual environment
 
-```bash
-cd backend
+Run these commands from the repository root:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-### 3. Create a Virtual Environment
+For macOS/Linux:
 
 ```bash
 python -m venv venv
-```
-
-Activate it:
-
-**Windows:**
-
-```bash
-venv\\Scripts\\activate
-```
-
-**Linux/macOS:**
-
-```bash
 source venv/bin/activate
 ```
 
-### 4. Install Dependencies
+### 3. Install dependencies
 
 ```bash
+cd backend
 python -m pip install -r requirements.txt
 ```
 
-### 5. Run the Backend Server
+### 4. Set a JWT secret key
+
+For the current PowerShell terminal, set a development secret before starting the server:
+
+```powershell
+$env:JWT_SECRET_KEY = "replace-this-with-a-long-random-secret"
+```
+
+For macOS/Linux:
+
+```bash
+export JWT_SECRET_KEY="replace-this-with-a-long-random-secret"
+```
+
+The application has a development-only fallback so it can start without this variable, but you should set a unique secret for your own environment. Never commit a real secret to GitHub. Use a strong, randomly generated secret in any deployed environment.
+
+### 5. Run the backend
 
 Run this command from inside the `backend` directory:
 
@@ -145,159 +103,129 @@ Run this command from inside the `backend` directory:
 uvicorn main:app --reload
 ```
 
-The API will be available at:
+The API runs at `http://127.0.0.1:8000`.
 
-```
-http://127.0.0.1:8000
-```
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
 
 ## API Endpoints
 
-The current backend provides the following endpoints:
+| Method | Endpoint | Authentication | Description |
+|---|---|---|---|
+| GET | `/health` | Not required | Check API status |
+| POST | `/register` | Not required | Register a user |
+| POST | `/login` | Not required | Log in and receive a JWT |
+| POST | `/projects` | Bearer token | Create a project |
+| GET | `/projects` | Bearer token | List your projects |
+| GET | `/projects/{project_id}` | Bearer token | Get one of your projects |
+| DELETE | `/projects/{project_id}` | Bearer token | Delete one of your projects |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/health` | Checks API availability. |
-| POST | `/register` | Registers a new user. |
-| POST | `/login` | Authenticates a user. |
+### Register
 
-### 1. Health Check
+`POST /register`
 
-**Request**
-
-```http
-GET /health
-```
-
-**Example response**
-
-```json
-{
-  "status": "ok",
-  "message": "API is running!"
-}
-```
-
-### 2. User Registration
-
-**Request**
-
-```http
-POST /register
-```
-
-**Example request body**
+Request body:
 
 ```json
 {
   "email": "tester@example.com",
-  "password": "your_password",
+  "password": "your-password",
   "role": "Tester"
 }
 ```
 
-A successful registration returns a confirmation message and the new user's ID. Registering an email that already exists returns an error.
+### Login
 
-### 3. User Login
+`POST /login`
 
-**Request**
-
-```http
-POST /login
-```
-
-**Example request body**
+Request body:
 
 ```json
 {
   "email": "tester@example.com",
-  "password": "your_password"
+  "password": "your-password"
 }
 ```
 
-A successful login returns a confirmation message and the user's role. Invalid credentials return an authentication error.
+Successful response:
 
-## API Documentation
+```json
+{
+  "access_token": "<your-jwt-access-token>",
+  "token_type": "bearer",
+  "role": "Tester"
+}
+```
 
-FastAPI automatically generates interactive API documentation.
+The access token expires after 30 minutes. For protected endpoints, send it in the HTTP Authorization header:
 
-After starting the backend, visit:
+```http
+Authorization: Bearer <your-jwt-access-token>
+```
 
-- **Swagger UI:** http://127.0.0.1:8000/docs
-- **ReDoc:** http://127.0.0.1:8000/redoc
+### Create a project
 
-You can use Swagger UI to send requests and inspect API responses.
+`POST /projects`
 
-## Security Note
+Request body:
 
-The current implementation uses SHA-256 for password hashing and does not yet issue JWT access tokens. This is an early learning implementation, not production-ready authentication. A password-specific hashing algorithm and a secure authentication flow are planned improvements.
+```json
+{
+  "name": "E-Commerce Website Testing",
+  "description": "Manage test activities for the e-commerce application.",
+  "status": "Active"
+}
+```
 
-## Development Roadmap
+Allowed project statuses: `Active`, `Completed`, and `On Hold`.
 
-- [x] Initialize FastAPI backend.
-- [x] Configure SQLite database using SQLAlchemy.
-- [x] Create the User database model.
-- [x] Implement health-check endpoint.
-- [x] Implement user registration.
-- [x] Implement user login.
-- [ ] Improve password security.
-- [ ] Implement JWT authentication.
-- [ ] Add role-based authorization.
-- [ ] Design and build the React frontend.
-- [ ] Implement project management.
-- [ ] Implement test case management.
-- [ ] Implement test execution.
-- [ ] Implement bug tracking.
-- [ ] Build dashboard and analytics.
-- [ ] Perform API testing using Postman.
-- [ ] Add end-to-end automation using Playwright.
-- [ ] Deploy the application.
+### List projects
 
-## Testing Strategy
+`GET /projects`
 
-Testing will be introduced as the application develops.
+Returns only projects owned by the authenticated user.
 
-**Planned manual testing:**
-- Functional Testing
-- Integration Testing
-- System Testing
-- Regression Testing
-- Smoke Testing
-- Sanity Testing
-- Exploratory Testing
-- Usability Testing
-- Compatibility Testing
-- Negative Testing
+### Get a project
 
-**Planned API testing:**
-- Validate API responses and status codes.
-- Test valid and invalid inputs.
-- Verify registration and login behavior.
-- Test error handling.
+`GET /projects/{project_id}`
 
-**Planned automation testing:**
-- Automate important user workflows using Playwright.
-- Validate frontend and backend integration.
+Returns a project only if it belongs to the authenticated user. Otherwise, the API returns `404 Not Found`.
 
-## Learning Objectives
+### Delete a project
 
-Through this project, I aim to gain practical experience in:
+`DELETE /projects/{project_id}`
 
-- Full-stack web application development.
-- Python and FastAPI.
-- REST API development.
-- Database management and SQL.
-- Authentication and authorization.
-- Software Quality Assurance.
-- API testing and automation.
-- Git and GitHub workflows.
+Deletes a project only if it belongs to the authenticated user.
+
+## Database Notes
+
+The application creates missing tables automatically when it starts. Existing user records are preserved. Users whose passwords were stored using the previous SHA-256 implementation can still log in; after a successful login, their password hash is upgraded to bcrypt.
+
+## Security Notes
+
+- Project endpoints require a valid JWT bearer token.
+- Project queries are restricted to the authenticated user's own records.
+- New passwords are stored using bcrypt, not as plain text.
+- The development JWT secret is not suitable for production. Set a strong `JWT_SECRET_KEY` environment variable before deployment.
+- This is a learning project and should receive further security review before production use.
+
+## Roadmap
+
+- [x] FastAPI backend setup.
+- [x] SQLite database integration.
+- [x] User registration and login.
+- [x] JWT authentication.
+- [x] Bcrypt password hashing and legacy SHA-256 hash upgrade.
+- [x] Project creation, listing, detail, and deletion APIs.
+- [ ] Project update API.
+- [ ] Role-based authorization.
+- [ ] Test case management.
+- [ ] Test execution and result tracking.
+- [ ] Bug tracking and defect management.
+- [ ] Frontend development.
+- [ ] Automated API and end-to-end tests.
+- [ ] Deployment.
 
 ## Project Status
 
-**Status: In Progress**
-
-The initial backend setup, database connection, user model, registration, and login endpoints are implemented. Frontend development and the remaining QA management modules are planned.
-
----
-
-Developed as a hands-on learning project.
+**In Progress** — JWT authentication and the initial project management API are implemented in the backend. Further testing and QA management modules are planned.
