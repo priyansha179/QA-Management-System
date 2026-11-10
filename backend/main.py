@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 import models
@@ -13,13 +14,54 @@ from auth import (
     is_legacy_password_hash,
     verify_password,
 )
-from database import Base, engine, SessionLocal
+from database import Base, SessionLocal, engine
 
-# Create any tables that do not already exist.
-# Existing user records are preserved when the new projects table is created.
+
+def migrate_existing_database() -> None:
+    """
+    Add columns introduced after the first database version.
+    Existing users and projects are kept. Old projects have no known owner,
+    so owner_id stays NULL for those records.
+    """
+    inspector = inspect(engine)
+    if "projects" not in inspector.get_table_names():
+        return
+
+    existing_columns = {
+        column["name"] for column in inspector.get_columns("projects")
+    }
+
+    with engine.begin() as connection:
+        if "owner_id" not in existing_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE projects "
+                    "ADD COLUMN owner_id INTEGER REFERENCES users(id)"
+                )
+            )
+
+        if "created_at" not in existing_columns:
+            connection.execute(
+                text("ALTER TABLE projects ADD COLUMN created_at DATETIME")
+            )
+
+        connection.execute(
+            text(
+                "UPDATE projects SET created_at = CURRENT_TIMESTAMP "
+                "WHERE created_at IS NULL"
+            )
+        )
+
+
+# Create missing tables first, then safely upgrade an existing projects table.
 Base.metadata.create_all(bind=engine)
+migrate_existing_database()
 
-app = FastAPI(title="QA Management System")
+app = FastAPI(
+    title="QA Management System",
+    description="Backend API for managing QA projects.",
+    version="1.0.0",
+)
 
 
 def get_db():
@@ -39,15 +81,15 @@ def get_authenticated_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User associated with this token no longer exists",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return user
 
 
 # Request and response schemas
 class UserCreate(BaseModel):
-    email: str
-    password: str
-    role: str = "Tester"
+    email: str = Field(min_length=5, max_length=254)
+    password: str = Field(min_length=8, max_length=72)
 
 
 class UserLogin(BaseModel):
@@ -62,9 +104,15 @@ class TokenResponse(BaseModel):
 
 
 class ProjectCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=150)
     description: str | None = None
     status: Literal["Active", "Completed", "On Hold"] = "Active"
+
+
+class ProjectUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=150)
+    description: str | None = None
+    status: Literal["Active", "Completed", "On Hold"] | None = None
 
 
 class ProjectResponse(BaseModel):
@@ -74,7 +122,7 @@ class ProjectResponse(BaseModel):
     name: str
     description: str | None
     status: str
-    owner_id: int
+    owner_id: int | None
     created_at: datetime
 
 
@@ -99,14 +147,17 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         email=user.email,
         hashed_password=hash_password(user.password),
-        role=user.role,
+        role="Tester",
     )
-
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    return {"message": "User created successfully", "user_id": new_user.id}
+    return {
+        "message": "User created successfully",
+        "user_id": new_user.id,
+        "role": new_user.role,
+    }
 
 
 @app.post("/login", response_model=TokenResponse)
@@ -121,9 +172,10 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Upgrade old SHA-256 password hashes to bcrypt after a successful login.
+    # Upgrade old SHA-256 hashes after a successful login.
     if is_legacy_password_hash(db_user.hashed_password):
         db_user.hashed_password = hash_password(user.password)
         db.commit()
@@ -153,7 +205,6 @@ def create_project(
         status=project.status,
         owner_id=current_user.id,
     )
-
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
@@ -187,13 +238,41 @@ def get_project(
         )
         .first()
     )
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    return project
 
+
+@app.put("/projects/{project_id}", response_model=ProjectResponse)
+def update_project(
+    project_id: int,
+    project_data: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    project = (
+        db.query(models.Project)
+        .filter(
+            models.Project.id == project_id,
+            models.Project.owner_id == current_user.id,
+        )
+        .first()
+    )
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Project not found",
         )
 
+    updates = project_data.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(project, field, value)
+
+    db.commit()
+    db.refresh(project)
     return project
 
 
@@ -211,7 +290,6 @@ def delete_project(
         )
         .first()
     )
-
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
