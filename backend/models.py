@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+
 from database import Base
 
 
@@ -20,5 +21,17 @@ class Project(Base):
     name = Column(String(150), nullable=False, index=True)
     description = Column(Text, nullable=True)
     status = Column(String(30), default="Active", nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Nullable so projects created by the older version of the app remain readable.
+    # New projects always receive the authenticated user's ID.
+    owner_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True,
+        index=True,
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
