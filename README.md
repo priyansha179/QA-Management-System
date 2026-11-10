@@ -1,24 +1,25 @@
 # QA Management System
 
-A backend-first Quality Assurance Management System built with FastAPI and SQLite. The project is being developed to help QA teams organize projects and, in future stages, manage test cases, test execution, and defects.
+A full-stack QA Management System currently under development. The backend provides authentication and project management APIs for organizing QA work. Planned modules include test cases, test execution, and defect tracking.
 
-## Current Features
+## Current Backend Features
 
 - User registration and login.
-- JWT access-token generation and verification.
-- Protected project management endpoints.
-- Users can create, list, view, and delete their own projects.
-- Bcrypt password hashing for new registrations.
+- JWT bearer-token authentication.
+- Bcrypt password hashing for new accounts.
 - Automatic upgrade of existing SHA-256 password hashes to bcrypt after a successful login.
-- SQLite database integration through SQLAlchemy.
-- Interactive API documentation with Swagger UI.
+- Create, list, view, update, and delete projects.
+- Project data is scoped to the authenticated owner.
+- SQLite database with SQLAlchemy ORM.
+- Safe startup migration for the older projects table; existing records are preserved.
+- Interactive API documentation through Swagger UI and ReDoc.
 
 ## Technology Stack
 
 | Category | Technology |
 |---|---|
 | Language | Python |
-| Backend framework | FastAPI |
+| Backend | FastAPI |
 | Database | SQLite |
 | ORM | SQLAlchemy |
 | Authentication | JWT (python-jose) |
@@ -36,10 +37,11 @@ QA-Management-System/
 │   ├── main.py
 │   ├── models.py
 │   └── requirements.txt
+├── .gitignore
 └── README.md
 ```
 
-The SQLite database file (`qa_system.db`) is created in the backend directory when the application runs.
+The SQLite database file is created in the backend directory when the application runs. It is intentionally excluded from Git because it contains local application data.
 
 ## Getting Started
 
@@ -58,88 +60,89 @@ cd QA-Management-System
 
 ### 2. Create and activate a virtual environment
 
-Run these commands from the repository root:
+From the repository root:
 
+**Windows PowerShell**
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-For macOS/Linux:
-
+**macOS / Linux**
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 3. Install backend dependencies
 
 ```bash
 cd backend
 python -m pip install -r requirements.txt
 ```
 
-### 4. Set a JWT secret key
+### 4. Configure the JWT secret
 
-For the current PowerShell terminal, set a development secret before starting the server:
-
+**Windows PowerShell**
 ```powershell
 $env:JWT_SECRET_KEY = "replace-this-with-a-long-random-secret"
 ```
 
-For macOS/Linux:
-
+**macOS / Linux**
 ```bash
 export JWT_SECRET_KEY="replace-this-with-a-long-random-secret"
 ```
 
-The application has a development-only fallback so it can start without this variable, but you should set a unique secret for your own environment. Never commit a real secret to GitHub. Use a strong, randomly generated secret in any deployed environment.
+The application includes a development-only fallback secret so it can start locally, but you should set your own secret. Never commit a real secret to GitHub or use the development fallback in production.
 
-### 5. Run the backend
+### 5. Start the backend
 
-Run this command from inside the `backend` directory:
+Run this from inside the `backend` directory:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The API runs at `http://127.0.0.1:8000`.
+The API will be available at:
 
+- API: http://127.0.0.1:8000
 - Swagger UI: http://127.0.0.1:8000/docs
 - ReDoc: http://127.0.0.1:8000/redoc
 
+On startup, the backend creates missing tables and adds the `owner_id` and `created_at` columns to an older `projects` table when needed. Existing user and project rows are retained. Projects created before ownership was introduced remain unassigned and are not returned in users' project lists.
+
 ## API Endpoints
 
-| Method | Endpoint | Authentication | Description |
-|---|---|---|---|
-| GET | `/health` | Not required | Check API status |
-| POST | `/register` | Not required | Register a user |
-| POST | `/login` | Not required | Log in and receive a JWT |
-| POST | `/projects` | Bearer token | Create a project |
-| GET | `/projects` | Bearer token | List your projects |
-| GET | `/projects/{project_id}` | Bearer token | Get one of your projects |
-| DELETE | `/projects/{project_id}` | Bearer token | Delete one of your projects |
+| Method | Endpoint | Auth required | Description |
+|---|---|---:|---|
+| GET | `/health` | No | Check API status |
+| POST | `/register` | No | Create a user account |
+| POST | `/login` | No | Receive a JWT access token |
+| POST | `/projects` | Yes | Create a project |
+| GET | `/projects` | Yes | List your projects |
+| GET | `/projects/{project_id}` | Yes | Get one of your projects |
+| PUT | `/projects/{project_id}` | Yes | Update one of your projects |
+| DELETE | `/projects/{project_id}` | Yes | Delete one of your projects |
 
 ### Register
 
 `POST /register`
 
-Request body:
-
+Request JSON:
 ```json
 {
   "email": "tester@example.com",
-  "password": "your-password",
-  "role": "Tester"
+  "password": "your-password"
 }
 ```
+
+Passwords must be at least 8 characters. New accounts receive the `Tester` role by default; the public registration endpoint does not allow users to assign themselves privileged roles.
 
 ### Login
 
 `POST /login`
 
-Request body:
-
+Request JSON:
 ```json
 {
   "email": "tester@example.com",
@@ -148,7 +151,6 @@ Request body:
 ```
 
 Successful response:
-
 ```json
 {
   "access_token": "<your-jwt-access-token>",
@@ -157,17 +159,17 @@ Successful response:
 }
 ```
 
-The access token expires after 30 minutes. For protected endpoints, send it in the HTTP Authorization header:
+The token expires after 30 minutes. For protected endpoints, send:
 
 ```http
 Authorization: Bearer <your-jwt-access-token>
 ```
 
+In Swagger UI, click **Authorize** and enter the token. If the UI asks for the scheme, use `Bearer` followed by the token.
+
 ### Create a project
 
 `POST /projects`
-
-Request body:
 
 ```json
 {
@@ -177,37 +179,31 @@ Request body:
 }
 ```
 
-Allowed project statuses: `Active`, `Completed`, and `On Hold`.
+Allowed statuses: `Active`, `Completed`, and `On Hold`.
 
-### List projects
+### Update a project
 
-`GET /projects`
+`PUT /projects/{project_id}`
 
-Returns only projects owned by the authenticated user.
+Send only the fields you want to change:
 
-### Get a project
+```json
+{
+  "status": "Completed"
+}
+```
 
-`GET /projects/{project_id}`
+### Project access
 
-Returns a project only if it belongs to the authenticated user. Otherwise, the API returns `404 Not Found`.
-
-### Delete a project
-
-`DELETE /projects/{project_id}`
-
-Deletes a project only if it belongs to the authenticated user.
-
-## Database Notes
-
-The application creates missing tables automatically when it starts. Existing user records are preserved. Users whose passwords were stored using the previous SHA-256 implementation can still log in; after a successful login, their password hash is upgraded to bcrypt.
+Users can view, update, or delete only projects they own. Requests for projects owned by another user return `404 Not Found`.
 
 ## Security Notes
 
-- Project endpoints require a valid JWT bearer token.
-- Project queries are restricted to the authenticated user's own records.
-- New passwords are stored using bcrypt, not as plain text.
-- The development JWT secret is not suitable for production. Set a strong `JWT_SECRET_KEY` environment variable before deployment.
-- This is a learning project and should receive further security review before production use.
+- Protected project routes require a valid JWT bearer token.
+- New passwords are hashed with bcrypt.
+- Legacy SHA-256 password hashes are supported for login and upgraded after successful authentication.
+- The JWT secret must be configured securely before deployment.
+- This is a learning project and needs further security review and automated testing before production use.
 
 ## Roadmap
 
@@ -215,17 +211,18 @@ The application creates missing tables automatically when it starts. Existing us
 - [x] SQLite database integration.
 - [x] User registration and login.
 - [x] JWT authentication.
-- [x] Bcrypt password hashing and legacy SHA-256 hash upgrade.
-- [x] Project creation, listing, detail, and deletion APIs.
-- [ ] Project update API.
-- [ ] Role-based authorization.
+- [x] Bcrypt password hashing and legacy hash upgrade.
+- [x] Project create, read, update, and delete APIs.
+- [x] Ownership checks for project access.
+- [x] Startup migration for existing project databases.
+- [ ] Team and project member management.
 - [ ] Test case management.
 - [ ] Test execution and result tracking.
-- [ ] Bug tracking and defect management.
-- [ ] Frontend development.
+- [ ] Bug and defect tracking.
+- [ ] React frontend.
 - [ ] Automated API and end-to-end tests.
 - [ ] Deployment.
 
 ## Project Status
 
-**In Progress** — JWT authentication and the initial project management API are implemented in the backend. Further testing and QA management modules are planned.
+**In Progress** — The initial backend authentication and project-management foundation is implemented. Frontend development and the core QA workflow modules are planned next.
