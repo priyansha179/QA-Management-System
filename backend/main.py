@@ -141,6 +141,41 @@ class ProjectResponse(BaseModel):
     created_at: datetime
 
 
+class TestCaseCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = None
+    preconditions: str | None = None
+    steps: str = Field(min_length=1)
+    expected_result: str = Field(min_length=1)
+    priority: Literal["Low", "Medium", "High", "Critical"] = "Medium"
+    status: Literal["Draft", "Ready"] = "Draft"
+
+
+class TestCaseUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = None
+    preconditions: str | None = None
+    steps: str | None = Field(default=None, min_length=1)
+    expected_result: str | None = Field(default=None, min_length=1)
+    priority: Literal["Low", "Medium", "High", "Critical"] | None = None
+    status: Literal["Draft", "Ready"] | None = None
+
+
+class TestCaseResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: int
+    title: str
+    description: str | None
+    preconditions: str | None
+    steps: str
+    expected_result: str
+    priority: str
+    status: str
+    created_at: datetime
+
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "API is running!"}
@@ -311,6 +346,130 @@ def delete_project(
             detail="Project not found",
         )
 
+    db.query(models.TestCase).filter(
+        models.TestCase.project_id == project.id
+    ).delete(synchronize_session=False)
     db.delete(project)
     db.commit()
     return {"message": "Project deleted successfully"}
+
+
+
+def get_owned_project(
+    project_id: int,
+    db: Session,
+    current_user: models.User,
+):
+    project = (
+        db.query(models.Project)
+        .filter(
+            models.Project.id == project_id,
+            models.Project.owner_id == current_user.id,
+        )
+        .first()
+    )
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    return project
+
+
+def get_owned_test_case(
+    test_case_id: int,
+    db: Session,
+    current_user: models.User,
+):
+    test_case = (
+        db.query(models.TestCase)
+        .join(models.Project, models.TestCase.project_id == models.Project.id)
+        .filter(
+            models.TestCase.id == test_case_id,
+            models.Project.owner_id == current_user.id,
+        )
+        .first()
+    )
+    if test_case is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test case not found",
+        )
+    return test_case
+
+
+@app.post(
+    "/projects/{project_id}/test-cases",
+    response_model=TestCaseResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_test_case(
+    project_id: int,
+    test_case_data: TestCaseCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    get_owned_project(project_id, db, current_user)
+    test_case = models.TestCase(
+        project_id=project_id,
+        **test_case_data.model_dump(),
+    )
+    db.add(test_case)
+    db.commit()
+    db.refresh(test_case)
+    return test_case
+
+
+@app.get(
+    "/projects/{project_id}/test-cases",
+    response_model=list[TestCaseResponse],
+)
+def list_test_cases(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    get_owned_project(project_id, db, current_user)
+    return (
+        db.query(models.TestCase)
+        .filter(models.TestCase.project_id == project_id)
+        .order_by(models.TestCase.created_at.desc())
+        .all()
+    )
+
+
+@app.get("/test-cases/{test_case_id}", response_model=TestCaseResponse)
+def get_test_case(
+    test_case_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    return get_owned_test_case(test_case_id, db, current_user)
+
+
+@app.put("/test-cases/{test_case_id}", response_model=TestCaseResponse)
+def update_test_case(
+    test_case_id: int,
+    test_case_data: TestCaseUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    test_case = get_owned_test_case(test_case_id, db, current_user)
+    updates = test_case_data.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(test_case, field, value)
+    db.commit()
+    db.refresh(test_case)
+    return test_case
+
+
+@app.delete("/test-cases/{test_case_id}")
+def delete_test_case(
+    test_case_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_authenticated_user),
+):
+    test_case = get_owned_test_case(test_case_id, db, current_user)
+    db.delete(test_case)
+    db.commit()
+    return {"message": "Test case deleted successfully"}
