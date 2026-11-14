@@ -38,6 +38,17 @@ QA-Management-System/
 │   ├── models.py
 │   └── requirements.txt
 ├── .gitignore
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── AuthContext.jsx
+│   │   ├── api.js
+│   │   ├── main.jsx
+│   │   └── styles.css
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── .gitignore
 └── README.md
 ```
 
@@ -110,6 +121,43 @@ The API will be available at:
 - ReDoc: http://127.0.0.1:8000/redoc
 
 On startup, the backend creates missing tables and adds the `owner_id` and `created_at` columns to an older `projects` table when needed. Existing user and project rows are retained. Projects created before ownership was introduced remain unassigned and are not returned in users' project lists.
+
+## Frontend
+
+The React frontend is built with Vite and React Router. It currently includes:
+
+- Registration and login screens connected to the backend API.
+- JWT session storage and protected dashboard access.
+- Responsive QA workspace layout.
+- Project dashboard with total, active, and completed project counts.
+- Project listing, search, and status filtering.
+- Create, edit, and delete project actions.
+- Loading, empty, and API error states.
+
+### Run the frontend
+
+Open a second terminal from the repository root:
+
+```bash
+cd frontend
+npm install
+```
+
+Copy `.env.example` to `.env` if your backend is running at a different address, then set `VITE_API_URL` to the backend base URL. The default is `http://127.0.0.1:8000`.
+
+Start the Vite development server:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:5173 in your browser. Keep the FastAPI server running in the first terminal. The backend allows the default Vite development origins; set `FRONTEND_ORIGINS` to a comma-separated list of allowed origins when hosting the frontend elsewhere.
+
+Create a production build with:
+
+```bash
+npm run build
+```
 
 ## API Endpoints
 
@@ -219,10 +267,10 @@ Users can view, update, or delete only projects they own. Requests for projects 
 - [ ] Test case management.
 - [ ] Test execution and result tracking.
 - [ ] Bug and defect tracking.
-- [ ] React frontend.
+- [x] React frontend foundation with authentication and project management dashboard.
 - [ ] Automated API and end-to-end tests.
 - [ ] Deployment.
 
 ## Project Status
 
-**In Progress** — The initial backend authentication and project-management foundation is implemented. Frontend development and the core QA workflow modules are planned next.
+**In Progress** — Backend authentication, project CRUD, and the first React frontend are implemented. Test case management, test execution, defect tracking, and deployment remain planned.
