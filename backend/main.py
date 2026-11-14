@@ -1,7 +1,9 @@
+import os
 from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
@@ -61,6 +63,19 @@ app = FastAPI(
     title="QA Management System",
     description="Backend API for managing QA projects.",
     version="1.0.0",
+)
+
+# Allow the Vite development server and configured frontend origins to call the API.
+frontend_origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173",
+).split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in frontend_origins if origin.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
