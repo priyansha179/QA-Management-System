@@ -24,4 +24,8 @@ export const api = {
   createProject: (payload, token) => request("/projects", { method: "POST", body: JSON.stringify(payload) }, token),
   updateProject: (id, payload, token) => request(`/projects/${id}`, { method: "PUT", body: JSON.stringify(payload) }, token),
   deleteProject: (id, token) => request(`/projects/${id}`, { method: "DELETE" }, token),
+  testCases: (projectId, token) => request(`/projects/${projectId}/test-cases`, {}, token),
+  createTestCase: (projectId, payload, token) => request(`/projects/${projectId}/test-cases`, { method: "POST", body: JSON.stringify(payload) }, token),
+  updateTestCase: (id, payload, token) => request(`/test-cases/${id}`, { method: "PUT", body: JSON.stringify(payload) }, token),
+  deleteTestCase: (id, token) => request(`/test-cases/${id}`, { method: "DELETE" }, token),
 };
