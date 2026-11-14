@@ -10,6 +10,9 @@ A full-stack QA Management System currently under development. The backend provi
 - Automatic upgrade of existing SHA-256 password hashes to bcrypt after a successful login.
 - Create, list, view, update, and delete projects.
 - Project data is scoped to the authenticated owner.
+- Create, list, view, update, and delete test cases within each owned project.
+- Test cases include preconditions, steps, expected results, priority, and Draft/Ready status.
+- Test case access is restricted to the owner of the parent project.
 - SQLite database with SQLAlchemy ORM.
 - Safe startup migration for the older projects table; existing records are preserved.
 - Interactive API documentation through Swagger UI and ReDoc.
@@ -133,6 +136,9 @@ The React frontend is built with Vite and React Router. It currently includes:
 - Responsive QA workspace layout.
 - Project dashboard with total, active, and completed project counts.
 - Project listing, search, and status filtering.
+- Project-specific test case management screens.
+- Create, edit, view, search, filter, and delete test cases.
+- Test case priorities (Low, Medium, High, Critical) and Draft/Ready status.
 - Create, edit, and delete project actions.
 - Loading, empty, and API error states.
 
@@ -172,7 +178,12 @@ npm run build
 | GET | `/projects` | Yes | List your projects |
 | GET | `/projects/{project_id}` | Yes | Get one of your projects |
 | PUT | `/projects/{project_id}` | Yes | Update one of your projects |
-| DELETE | `/projects/{project_id}` | Yes | Delete one of your projects |
+| DELETE | `/projects/{project_id}` | Yes | Delete one of your projects and its test cases |
+| POST | `/projects/{project_id}/test-cases` | Yes | Create a test case in a project |
+| GET | `/projects/{project_id}/test-cases` | Yes | List test cases in a project |
+| GET | `/test-cases/{test_case_id}` | Yes | Get one test case |
+| PUT | `/test-cases/{test_case_id}` | Yes | Update a test case |
+| DELETE | `/test-cases/{test_case_id}` | Yes | Delete a test case |
 
 ### Register
 
@@ -266,7 +277,7 @@ Users can view, update, or delete only projects they own. Requests for projects 
 - [x] Ownership checks for project access.
 - [x] Startup migration for existing project databases.
 - [ ] Team and project member management.
-- [ ] Test case management.
+- [x] Test case management CRUD and project ownership checks.
 - [ ] Test execution and result tracking.
 - [ ] Bug and defect tracking.
 - [x] React frontend foundation with authentication and project management dashboard.
@@ -275,4 +286,4 @@ Users can view, update, or delete only projects they own. Requests for projects 
 
 ## Project Status
 
-**In Progress** — Backend authentication, project CRUD, and the first React frontend are implemented. Test case management, test execution, defect tracking, and deployment remain planned.
+**In Progress** — Backend authentication, project CRUD, and the first React frontend are implemented. Test case management is implemented. Test execution, defect tracking, automated tests, and deployment remain planned.
