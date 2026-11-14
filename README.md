@@ -47,7 +47,9 @@ QA-Management-System/
 │   │   └── styles.css
 │   ├── index.html
 │   ├── package.json
-│   └── vite.config.js
+│   ├── vite.config.js
+│   ├── .env.example
+│   └── .gitignore
 ├── .gitignore
 └── README.md
 ```
