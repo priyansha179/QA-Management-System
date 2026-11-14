@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Activity, ArrowDownUp, ArrowRight, Bell, Check, CheckCircle2, ChevronDown, CircleHelp, ClipboardCheck, Clock3, FolderKanban, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Search, Settings2, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
 import { api } from "./api";
 import { useAuth } from "./AuthContext";
@@ -48,6 +48,7 @@ function AppShell({ children }) {
   const { session, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const initials = (session?.email || "T").slice(0,1).toUpperCase();
   return <div className="app-shell">
     <aside className={mobileOpen ? "sidebar open" : "sidebar"}>
@@ -55,11 +56,11 @@ function AppShell({ children }) {
       <div className="workspace-label">WORKSPACE <ChevronDown size={13}/></div>
       <div className="workspace-card"><span className="workspace-icon"><FolderKanban size={17}/></span><span><b>My workspace</b><small>Personal account</small></span><span className="online-dot"/></div>
       <div className="nav-label">MENU</div>
-      <nav className="side-nav"><Link to="/dashboard" className="nav-item"><LayoutDashboard size={17}/> Overview</Link><Link to="/dashboard" className="nav-item"><FolderKanban size={17}/> Projects</Link><div className="nav-item active"><ListChecks size={17}/> Test cases</div><div className="nav-item disabled"><Activity size={17}/> Test runs <span className="nav-soon">SOON</span></div><div className="nav-item disabled"><ShieldCheck size={17}/> Defects <span className="nav-soon">SOON</span></div></nav>
+      <nav className="side-nav"><Link to="/dashboard" className={location.pathname === "/dashboard" ? "nav-item active" : "nav-item"}><LayoutDashboard size={17}/> Overview</Link><Link to="/dashboard" className="nav-item"><FolderKanban size={17}/> Projects</Link><div className={location.pathname.startsWith("/projects/") ? "nav-item active" : "nav-item"}><ListChecks size={17}/> Test cases</div><div className="nav-item disabled"><Activity size={17}/> Test runs <span className="nav-soon">SOON</span></div><div className="nav-item disabled"><ShieldCheck size={17}/> Defects <span className="nav-soon">SOON</span></div></nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Need a hand?</b><p>Your QA workspace is growing. More tools are on the way.</p></div><button className="profile-row" onClick={()=>{logout();navigate("/login");}}><span className="avatar">{initials}</span><span className="profile-text"><b>{session?.email}</b><small>{session?.role || "Tester"}</small></span><LogOut size={16}/></button></div>
     </aside>
     {mobileOpen && <button className="scrim" onClick={()=>setMobileOpen(false)} aria-label="Close menu"/>}
-    <main className="main-area"><header className="topbar"><button className="icon-btn menu-toggle" onClick={()=>setMobileOpen(true)}><Menu size={20}/></button><div className="breadcrumb">Workspace <span>/</span> <b>Overview</b></div><div className="top-actions"><span className="top-status"><span className="online-dot"/> All systems operational</span><button className="icon-btn" title="Notifications"><Bell size={18}/></button><span className="avatar avatar-small">{initials}</span></div></header>{children}</main>
+    <main className="main-area"><header className="topbar"><button className="icon-btn menu-toggle" onClick={()=>setMobileOpen(true)}><Menu size={20}/></button><div className="breadcrumb">Workspace <span>/</span> <b>{location.pathname.startsWith("/projects/") ? "Test cases" : "Overview"}</b></div><div className="top-actions"><span className="top-status"><span className="online-dot"/> All systems operational</span><button className="icon-btn" title="Notifications"><Bell size={18}/></button><span className="avatar avatar-small">{initials}</span></div></header>{children}</main>
   </div>;
 }
 
